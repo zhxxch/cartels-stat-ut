@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include"noise-analy.h"
-#include"noise-synth.h"
+#include"stat-analy.h"
+#include"stat-synth.h"
 #include"zxtsv.h"
 inline double avg(double arr[], int num){
 	double a = 0;
@@ -33,11 +33,15 @@ int main(int argc, char* argv[]){
 	}
 	qsort(Samples, Length, sizeof(double), cmpf64sort);
 	qsort(SimulArr, Length, sizeof(double), cmpf64sort);
-	const double ksu_sample = ks_cdf(ks_test_eval(Samples, Length, 1),Length);
-	const double ksl_sample = ks_cdf(ks_test_eval(Samples, Length, 0),Length);
+	const probability_t ksu_sample
+		= ks_cdf(ks_test_eval(Samples, Length, 1),Length);
+	const probability_t ksl_sample
+		= ks_cdf(ks_test_eval(Samples, Length, 0),Length);
 	printf("Sample : u = %f, l = %f\n", ksu_sample, ksl_sample);
-	const double ksu_simul = ks_cdf(ks_test_eval(SimulArr, Length,1),Length);
-	const double ksl_simul = ks_cdf(ks_test_eval(SimulArr, Length,1),Length);
+	const probability_t ksu_simul
+		= ks_cdf(ks_test_eval(SimulArr, Length,1),Length);
+	const probability_t ksl_simul
+		= ks_cdf(ks_test_eval(SimulArr, Length,1),Length);
 	printf("Simul : u = %f, l = %f\n", ksu_simul, ksl_simul);
 	return 0;
 }

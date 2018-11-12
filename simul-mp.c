@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include"noise-analy.h"
-#include"noise-synth.h"
+#include"stat-analy.h"
+#include"stat-synth.h"
 #include"zxtsv.h"
 inline double avg(double arr[], int num){
 	double a = 0;
