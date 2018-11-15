@@ -25,10 +25,34 @@ int birth_process(int birth_days[],
 	}
 	return birth_process(birth_days, day_num+1, population, Length, p);
 }
-int death_process(const int birth_days[], int end_days[],
-		const int max_days, const int population,
-		const int num_alive, const double mu){
+double inv_weibull_pdf(const double x,
+		const double k, const double lambda){
+	/*	weibull distribution RNG. */
+	return lambda*pow(-log(x),1/k);
+}
+int sample_lifetime(int end_days[], const int num, const double k, const double lambda){
+
+	return 0;
+}
+int count_alive(const int starts[], const int ends[],
+		int counter[], const int max_days, const int num_coming){
+	for(int j=1;j<max_days;j++){
+		for(int i=0;i<num_coming;i++){
+			if(j==starts[i]){
+				counter[j] = counter[j-1]+1;
+			}else if(j==ends[i]){
+				counter[j]= counter[j-1]-1;
+			}else counter[j] = counter[j-1];
+		}}
+	return 0;
 }
 int main(int argc, char *argv[]){
+	if(argc<4)return printf("args : k lambda maxdays\n");
+	const double K = atof(argv[1]);
+	const double Lambda = atof(argv[2]);
+	const int MaxDays = atoi(argv[3]);
+	const int* StartDays = calloc(MaxDays/2, sizeof(int));
+	const int* Lifetimes = calloc(MaxDays/2, sizeof(int));
+	const int* AlivesCtr = calloc(MaxDays/2, sizeof(int));
 	return 0;
 }

@@ -19,3 +19,6 @@ simul-weibull.exe: $(SRCDIR)/simul-weibull.c
 
 clean:
 	del *.obj
+
+clean-exe:
+	del *.exe
