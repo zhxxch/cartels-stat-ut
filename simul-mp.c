@@ -17,26 +17,26 @@ int cmpf64sort(const double *a, const double *b){
 }
 int birth_process(int birth_days[],
 		const int day_num, const int population,
-		const int Length, const double p){
+		const int Length, const double lambda){
 	if(Length==day_num)return population;
-	if(u01i53(ru64_rdrand())<p){
+	if(u01i53(ru64_rdrand())<lambda){
 		birth_days[0] = day_num;
 		return birth_process(birth_days+1, day_num+1,
-				population+1,Length, p);
+				population+1,Length, lambda);
 	}
-	return birth_process(birth_days, day_num+1, population, Length, p);
+	return birth_process(birth_days, day_num+1, population, Length, lambda);
 }
 int death_process(const int birth_days[], int end_days[],
 		const int max_days, const int population,
-		const int num_alive, const double p){
+		const int num_alive, const double mu){
 	if(population==0)return num_alive;
 	for(int n = birth_days[0]; n<max_days;n++){
-		if(u01i53(ru64_rdrand())<p){
+		if(u01i53(ru64_rdrand())<mu){
 			end_days[0] = n;
-			return death_process(birth_days+1, end_days+1, max_days, population-1,num_alive-1, p);
+			return death_process(birth_days+1, end_days+1, max_days, population-1,num_alive-1, mu);
 		}
 	}
-	return death_process(birth_days+1, end_days+1, max_days, population-1,num_alive, p);
+	return death_process(birth_days+1, end_days+1, max_days, population-1,num_alive, mu);
 }
 double inter_arrival_time(const int birth_days[], const int num){
 	double avg_time = 0;
