@@ -68,18 +68,19 @@ counter_stream_t count_alive(counter_stream_t counter,
 	return counter;
 }
 void gen_uniform01_random(uint64_t arr[], const long long num){
-	for(long long i=0;i<num;i++){
-		arr[i] = i;
+	long long n;
+#pragma omp parallel for num_threads(2) schedule(static)
+	for(n=0;n<num;n++){
+		arr[n] = n;
 	}
 	uint64_t keys[32];
 	speck128key32(keys, ru64_rdrand(), ru64_rdrand());
-	long long n;
-#pragma omp parallel for
+#pragma omp parallel for num_threads(2) schedule(static)
 	for(n=0;n<num;n+=8){
 		speck4x128u128(arr+n, arr+n, keys);
 	}
 	speck4x128u128fin(arr, arr, keys, num);
-#pragma omp parallel for
+#pragma omp parallel for num_threads(2) schedule(static)
 	for(n=0;n<num;n++){
 		((double*)arr)[n] = u01i53(arr[n]);
 	}
