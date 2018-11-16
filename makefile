@@ -15,7 +15,7 @@ weibull-estimate.exe: $(SRCDIR)/weibull-estimate.c
 	$(CC) $** $(CFLAGS)
 
 simul-weibull.exe: $(SRCDIR)/simul-weibull.c
-	$(CC) $** $(CFLAGS)
+	$(CC) $** $(CFLAGS) /Zi /openmp
 
 clean:
 	del *.obj
