@@ -3,6 +3,8 @@
 *.o
 *.ko
 
+*.pdb
+
 # Libraries
 *.lib
 *.a
