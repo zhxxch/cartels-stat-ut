@@ -2,85 +2,59 @@
 #include<stdlib.h>
 #include<math.h>
 #include"stat-synth.h"
+#define _speck128u128_round 32
 #include"zxcrypto-ymm.h"
+#include"sum-ymm.h"
 typedef double probalility_t;
-typedef int* counter_stream_t;
-inline double avg(const int arr[], const long long num){
-	double a = 0;
-	for(long long i=0;i<num;i++){
-		a+=(double)arr[i]/num;
-	}
-	return a;
-}
-inline double avgd(const double arr[], const long long num){
-	double a = 0;
-	for(long long i=0;i<num;i++){
-		a+=arr[i]/num;
-	}
-	return a;
-}
-double* block_avg(double avg_arr_out[], const int *counter,
-		const long long max_days, const long long block_days){
-	for(long long i=0;i<max_days/block_days;i++){
-		avg_arr_out[i] = avg(counter+i*block_days, block_days);
-	}
-	return avg_arr_out;
+typedef double* counter_stream_t;
+double avgd(const double arr[], const long long num){
+	const double a = sum_kahan(arr, num);
+	return a/num;
 }
 int cmpf64sort(const double *a, const double *b){
 	return (*a<*b)?-1:1;
 }
-double inv_weibull_pdf(const double x,
+double weibull_invPDF(const double x,
 		const double k, const double lambda){
 	/*	weibull distribution RNG. */
 	return lambda*pow(-log(1-x),1/k);
 }
-counter_stream_t birth_process(counter_stream_t counter,
-		const double lambda, const double u01s[],
-		const long long max_days){
-	for(long long j=max_days;j--;){
-		if(u01s[j]<lambda){
-			counter[j] = 1;
+int life_process(
+		const double lambda, const double k,
+		const double mu, const long long max_days,
+		counter_stream_t ctr_begin, counter_stream_t ctr_end
+		){
+	if(ctr_begin+max_days < ctr_end)return 0;
+	if(ctr_begin[0] < lambda){
+		ctr_begin[0] = 1;
+		const long long duration = (long long)
+			(0.5+weibull_invPDF(u01i53(ru64_rdrand()), k, mu));
+		if(ctr_begin+duration < ctr_end){
+			ctr_begin[duration] -= 1;
 		}
-	}
-	return counter;
+	}else ctr_begin[0] = 0;
+	return life_process(lambda, k, mu, max_days,
+			ctr_begin-1, ctr_end);
 }
-counter_stream_t life_process(counter_stream_t counter,
-		const double lambda, const double k, const double mu,
-		const double u01s[], const long long max_days){
-	for(long long j=max_days;j--;){
-		if(u01s[j]<lambda){
-			counter[j] = 1;
-			const long long duration
-				= (long long)inv_weibull_pdf(u01i53(
-							ru64_rdrand()), k, mu);
-			if((j+duration)<max_days){
-				counter[j+duration] -= 1;
-			}
-		}
-	}
-	return counter;
-}
-counter_stream_t count_alive(counter_stream_t counter,
+double count_alive(counter_stream_t counter,
 		const long long max_days){
-	for(long long j=1;j<max_days;j++){
-		counter[j] = counter[j-1]+counter[j];
-	}
-	return counter;
+	if(max_days==1)return counter[0];
+	counter[1] = counter[1]+counter[0];
+	return count_alive(counter+1, max_days-1);
 }
 void gen_uniform01_random(uint64_t arr[], const long long num){
 	long long n;
-#pragma omp parallel for num_threads(2) schedule(static)
+#pragma omp parallel for num_threads(2) schedule(static, 1)
 	for(n=0;n<num;n++){
 		arr[n] = n;
 	}
 	uint64_t keys[32];
 	speck128key32(keys, ru64_rdrand(), ru64_rdrand());
-#pragma omp parallel for num_threads(2) schedule(static)
+#pragma omp parallel for num_threads(2) schedule(static, 1)
 	for(n=0;n<num;n+=8){
 		speck4x128u128(arr+n, arr+n, keys);
 	}
-	speck4x128u128fin(arr, arr, keys, num);
-#pragma omp parallel for num_threads(2) schedule(static)
+#pragma omp parallel for num_threads(2) schedule(static, 1)
 	for(n=0;n<num;n++){
 		((double*)arr)[n] = u01i53(arr[n]);
 	}
@@ -92,15 +66,16 @@ int main(int argc, char *argv[]){
 	const double Mu = atof(argv[3]);
 	const long long MaxDays = (long long)atof(argv[4]);
 	const long long NumSimul = atoll(argv[5]);
-	int* AliveCounter = malloc(MaxDays*sizeof(int));
+	counter_stream_t AliveCounter
+		= malloc(MaxDays*sizeof(double));
 	double *AliveAvgs = malloc(NumSimul*sizeof(double));
-	double *U01Rnds = malloc(MaxDays*sizeof(double));
 	for(int i=0;i<NumSimul;i++){
 		memset(AliveCounter, 0, MaxDays*sizeof(int));
-		gen_uniform01_random((uint64_t*)U01Rnds, MaxDays);
-		life_process(AliveCounter, Lambda, K, Mu, U01Rnds, MaxDays);
+		gen_uniform01_random((uint64_t*)AliveCounter, MaxDays);
+		life_process(Lambda, K, Mu, MaxDays,
+				AliveCounter+MaxDays-1, AliveCounter+MaxDays);
 		count_alive(AliveCounter, MaxDays);
-		AliveAvgs[i] = avg(AliveCounter, MaxDays);
+		AliveAvgs[i] = avgd(AliveCounter+1000, MaxDays-1000);
 	}
 	printf("%f\n", avgd(AliveAvgs,NumSimul));
 	return 0;
