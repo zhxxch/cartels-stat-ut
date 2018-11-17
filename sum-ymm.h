@@ -9,7 +9,7 @@ double sum_kahan(const double *arr, const long long len){
 		__m256d A4 = _mm256_set1_pd(0);
 		__m256d C4 = _mm256_set1_pd(0);
 	for(const long long len4 = len-4;i<len4;i+=4){
-		__m256d y4 = _mm256_sub_pd(_mm256_load_pd(arr+i),C4);
+		__m256d y4 = _mm256_sub_pd(_mm256_loadu_pd(arr+i),C4);
 		__m256d t4 = _mm256_add_pd(A4, y4);
 		C4 = _mm256_sub_pd(_mm256_sub_pd(t4, A4), y4);
 		A4 = t4;
