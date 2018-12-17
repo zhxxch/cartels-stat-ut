@@ -1,6 +1,6 @@
 #pragma once
-const double Avogadro = 6.022140857e23;
-const double Boltzmanm = 1.38064852e-23;
+const double Avogadro = 6.02214076e23;
+const double Boltzmann = 1.380649e-23;
 #include<math.h>
 inline double ks_cdf(const double MaxDiffXsqrtN, const int Num){
 	double p = 0, t = MaxDiffXsqrtN*sqrt(Num);

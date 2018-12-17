@@ -19,13 +19,13 @@ double weibull_invPDF(const double x,
 	/*	weibull distribution RNG. */
 	return lambda*pow(-log(1-x),1/k);
 }
-int life_process(
+long long life_process(
 		flux_t birth_at[], flux_t end_at[],
 		const long long daysvalid, const double u01randoms[],
 		const double lambda, const double k,
 		const double mu, const long long max_days
 		){
-	if(daysvalid==max_days)return 0;
+	if(daysvalid==max_days)return daysvalid;
 	if(*u01randoms < lambda){
 		*birth_at = 1;
 		const long long duration = (long long)(
@@ -38,14 +38,14 @@ int life_process(
 			birth_at-1, end_at-1, daysvalid+1, u01randoms-1,
 			lambda, k, mu, max_days);
 }
-double count_alive(state_t alive_ints[],
+state_t count_alive(state_t alive_ints[],
 		const long long max_days, const state_t alive,
 		const flux_t birth_fluxs[]){
 	if(max_days==0)return alive;
 	*alive_ints = *birth_fluxs + alive;
 	return count_alive(alive_ints+1, max_days-1, *alive_ints, birth_fluxs+1);
 }
-void gen_uniform01_random(uint64_t arr[], const long long num){
+long long gen_uniform01_random(uint64_t arr[], const long long num){
 	long long n;
 #pragma omp parallel for num_threads(2) schedule(static, 1)
 	for(n=0;n<num;n++){
@@ -61,6 +61,7 @@ void gen_uniform01_random(uint64_t arr[], const long long num){
 	for(n=0;n<num;n++){
 		((double*)arr)[n] = u01i53(arr[n]);
 	}
+	return num;
 }
 int main(int argc, char *argv[]){
 	if(argc<5)return printf("args : lambda k mu maxdays numsimul\n");
@@ -74,7 +75,6 @@ int main(int argc, char *argv[]){
 	flux_t* AliveCtrEnd = AliveCounter+MaxDays-1;
 	double *AliveAvgs = malloc(NumSimul*sizeof(double));
 	for(int i=0;i<NumSimul;i++){
-		memset(AliveCounter, 0, MaxDays*sizeof(int));
 		gen_uniform01_random((uint64_t*)AliveCounter, MaxDays);
 		life_process(AliveCtrEnd, AliveCtrEnd, 0, AliveCtrEnd, Lambda, K, Mu, MaxDays);
 		count_alive(AliveCounter, MaxDays,0,AliveCounter);
