@@ -15,7 +15,7 @@ int cmpf64sort(const double *a, const double *b){
 }
 typedef double probability_t;
 int main(int argc, char* argv[]){
-	if(argc<3)return printf("args : length lambda < samples.tsv");
+	if(argc<3)return printf("args : length exp.lambda < samples.tsv");
 	const int Length = atoi(argv[1]);
 	const double Lambda = atof(argv[2]);
 	printf("lambda = %f, 1/lambda = %f\n", Lambda, 1/Lambda);

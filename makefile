@@ -1,4 +1,4 @@
-CFLAGS=/nologo /W4 /O2 /GL /arch:AVX2 /D_CRT_SECURE_NO_WARNINGS
+CFLAGS=/nologo /W4 /Ox /GL /MD /sdl
 SRCDIR=.
 CC=cl
 
@@ -15,10 +15,13 @@ weibull-estimate.exe: $(SRCDIR)/weibull-estimate.c
 	$(CC) $** $(CFLAGS)
 
 simul-weibull.exe: $(SRCDIR)/simul-weibull.c
-	$(CC) $** $(CFLAGS) /Zi /openmp
+	$(CC) $** $(CFLAGS)
 
 clean:
 	del *.obj
 
 clean-exe:
 	del *.exe
+
+test-sw: simul-weibull.exe
+	simul-weibull.exe 0.008641642 1.205623998 1060.280257 600000 10
