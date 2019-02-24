@@ -82,6 +82,27 @@ inline void speck128key32(uint64_t RoundKeys[32],
 		KeyLo = KeyLo ^ KeyHi;
 	}
 }
+inline void speck128key32(uint16_t RoundKeys[22],
+		uint16_t Keys[4]){
+	RoundKeys[0] = Keys[0];
+	for(int i = 0; i < 22;){
+		Keys[1] = (Keys[1] >> 7) | (Keys[1] << 9);
+		Keys[1] = (Keys[1] + Keys[0]) ^ i++;
+		Keys[0] = (Keys[0] <<2) | (Keys[0] >> 14);
+		Keys[0] = Keys[0] ^ Keys[1];
+		RoundKeys[i] = Keys[0];
+		Keys[2] = (Keys[2] >> 7) | (Keys[2] << 9);
+		Keys[2] = (Keys[2] + Keys[0]) ^ i++;
+		Keys[0] = (Keys[0] <<2) | (Keys[0] >> 14);
+		Keys[0] = Keys[0] ^ Keys[2];
+		RoundKeys[i] = Keys[0];
+		Keys[3] = (Keys[3] >> 7) | (Keys[3] << 9);
+		Keys[3] = (Keys[3] + Keys[0]) ^ i++;
+		Keys[0] = (Keys[0] <<2) | (Keys[0] >> 14);
+		Keys[0] = Keys[0] ^ Keys[2];
+		RoundKeys[i] = Keys[0];
+	}
+}
 inline void speck128key32T(
 	uint64_t keys_out[32], const uint64_t keys_in[32]){
 	uint64_t t[32];
